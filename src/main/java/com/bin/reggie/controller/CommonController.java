@@ -1,4 +1,4 @@
-package com.bin.reggie.config;
+package com.bin.reggie.controller;
 
 import com.bin.reggie.common.R;
 import org.springframework.beans.factory.annotation.Value;
