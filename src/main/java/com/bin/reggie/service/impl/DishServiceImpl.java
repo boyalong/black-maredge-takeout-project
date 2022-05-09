@@ -13,11 +13,13 @@ import com.bin.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements DishService {
     @Autowired
     private DishFlavorService dishFlavorService;
+    @Autowired
+    private RedisTemplate redisTemplate;
     /**
      * 新增菜品同时保存对应的口味信息
      * @param dishDto
@@ -41,6 +45,10 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             item.setDishId(dishId);
             return item;
         }).collect(Collectors.toList());
+
+        Set keys = redisTemplate.keys("dish_*");
+        redisTemplate.delete(keys);
+
         dishFlavorService.saveBatch(flavors);
     }
 
@@ -80,6 +88,9 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             return item;
         }).collect(Collectors.toList());
 
+        Set keys = redisTemplate.keys("dish_*");
+        redisTemplate.delete(keys);
+
         dishFlavorService.saveBatch(flavors);
     }
 
@@ -97,6 +108,10 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
             DishLambdaUpdateWrapper.eq(Dish::getId, id).set(Dish::getStatus,status);
             this.update(DishLambdaUpdateWrapper);
         }
+
+        Set keys = redisTemplate.keys("dish_*");
+        redisTemplate.delete(keys);
+
         return "更新菜品成功  ";
     }
 

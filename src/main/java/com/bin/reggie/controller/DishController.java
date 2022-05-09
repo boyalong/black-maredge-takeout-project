@@ -12,9 +12,11 @@ import com.bin.reggie.service.DishFlavorService;
 import com.bin.reggie.service.DishService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +31,8 @@ public class DishController {
     private CategoryService categoryService;
     @Autowired
     private DishFlavorService dishFlavorService;
+    @Autowired
+    private RedisTemplate redisTemplate;
     /**
      * 新增菜品
      * @param dishDto
@@ -156,6 +160,19 @@ public class DishController {
      */
     @GetMapping("/list")
     public R<List<DishDto>> list(Dish dish){
+        List<DishDto> dishDtoList = null;
+
+        //动态构造菜品数据id
+        String key  = "dish_" + dish.getCategoryId() + "" + dish.getStatus();
+        //查询缓存中是否有对应数据
+        dishDtoList = (List<DishDto>) redisTemplate.opsForValue().get(key);
+
+        //存在直接返回
+        if(dishDtoList != null){
+            return R.success(dishDtoList);
+        }
+
+        //不存在则查询数据库
         //查询菜品分类
         LambdaQueryWrapper<Dish> dishLambdaQueryWrapper = new LambdaQueryWrapper<>();
         //添加查询排列条件
@@ -166,7 +183,7 @@ public class DishController {
 
         List<Dish> list = dishService.list(dishLambdaQueryWrapper);
 
-        List<DishDto> dishDtoList = list.stream().map((item)->{
+        dishDtoList = list.stream().map((item)->{
             DishDto dishDto = new DishDto();
             BeanUtils.copyProperties(item,dishDto);
             Long categoryId = item.getCategoryId();
@@ -189,6 +206,9 @@ public class DishController {
 
             return dishDto;
         }).collect(Collectors.toList());
+
+        //将数据缓存到redis，60分钟后自动清除
+        redisTemplate.opsForValue().set(key,dishDtoList,60, TimeUnit.MINUTES);
 
         return R.success(dishDtoList);
 

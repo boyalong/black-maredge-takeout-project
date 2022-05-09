@@ -8,6 +8,8 @@ import com.bin.reggie.entity.AddressBook;
 import com.bin.reggie.service.AddressBookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +29,7 @@ public class AddressBookController {
      * 新增
      */
     @PostMapping
+    @CacheEvict(value = "addressBookCache",allEntries = true)
     public R<AddressBook> save(@RequestBody AddressBook addressBook) {
         addressBook.setUserId(BaseContext.getCurrentId());
 //        log.info("addressBook:{}", addressBook);
@@ -56,6 +59,7 @@ public class AddressBookController {
      * 根据id查询地址
      */
     @GetMapping("/{id}")
+    @Cacheable(value = "addressBookCache",key = "#id")
     public R get(@PathVariable Long id) {
         AddressBook addressBook = addressBookService.getById(id);
         if (addressBook != null) {
@@ -88,6 +92,7 @@ public class AddressBookController {
      * 查询指定用户的全部地址
      */
     @GetMapping("/list")
+    @Cacheable(value = "addressBookCache",key = "#addressBook.userId")
     public R<List<AddressBook>> list(AddressBook addressBook) {
         addressBook.setUserId(BaseContext.getCurrentId());
         log.info("addressBook:{}", addressBook);
@@ -102,6 +107,7 @@ public class AddressBookController {
     }
 
     @DeleteMapping
+    @CacheEvict(value = "addressBookCache",allEntries = true)
     public R<String> delete(@RequestParam Long ids){
         addressBookService.removeById(ids);
         return R.success("删除成功");
