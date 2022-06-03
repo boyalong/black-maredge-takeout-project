@@ -28,15 +28,16 @@ public class EmployeeController {
      * @param employee
      * @return
      */
-    @PostMapping("/login")
+    @PostMapping("/login")  //获取员工的id，并且把这个id存到session中   //接收前端的json数据,这个json数据是在请求体中的
     public R<Employee> login(HttpServletRequest request, @RequestBody Employee employee) {
         return employeeService.login(request,employee);
     }
 
     /**
-     * 员工退出
-     *
-     * @param request
+     * 退出功能
+     * ①在controller中创建对应的处理方法来接受前端的请求，请求方式为post；
+     * ②清理session中的用户id
+     * ③返回结果（前端页面会进行跳转到登录页面）
      * @return
      */
     @PostMapping("/logout")
@@ -64,8 +65,8 @@ public class EmployeeController {
 //        //获取当前用户id
 //        Long empID = (long) request.getSession().getAttribute("employee");
 //
-//        employee.setCreateUser(empID);
-//        employee.setUpdateUser(empID);
+//        employee.setCreateUser(empID);     //创建人的id,就是当前用户的id（在进行添加操作的id）
+//        employee.setUpdateUser(empID);    /最后的更新人是谁
 
         //增加员工
 
@@ -76,16 +77,16 @@ public class EmployeeController {
 
     /**
      * 员工信息分页查询
-     * @param page
-     * @param pageSize
-     * @param name
+     * @param page  当前页数
+     * @param pageSize 当前页最多存放数据条数,就是这一页查几条数据
+     * @param name 根据name查询员工的信息
      * @return
      */
     @GetMapping("/page")
     public R<Page> page(int page,int pageSize,String name){
 //        log.info("page = {},pageSize = {},name = {}",page,pageSize,name);
 
-        //构造分页构造器
+        //构造分页构造器   就是page对象
         Page<Employee> pageInfo = new Page(page,pageSize);
 
         //构建条件构造器
@@ -95,8 +96,9 @@ public class EmployeeController {
         //排序条件
         queryWrapper.orderByDesc(Employee::getCreateTime);
 
-        //执行查询
+        //执行查询  这里不用封装了mybatis-plus帮我们做好了
         employeeService.page(pageInfo,queryWrapper);
+
         return R.success(pageInfo);
     }
 

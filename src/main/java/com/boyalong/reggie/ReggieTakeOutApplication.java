@@ -8,6 +8,9 @@ import org.springframework.cache.annotation.EnableCaching;
 
 @Slf4j
 @SpringBootApplication
+//使用@ServletComponentScan 注解后，
+// 使用@WebServlet、@WebFilter、@WebListener标记的 Servlet、Filter、Listener 就可以自动注册到Servlet容器中，
+// 无需其他代码。
 @ServletComponentScan
 @EnableCaching //开启spring cache注解缓存功能
 public class ReggieTakeOutApplication {

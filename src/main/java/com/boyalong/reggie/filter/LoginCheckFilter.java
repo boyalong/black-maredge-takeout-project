@@ -12,6 +12,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * 检查用户是否已经完成登陆
+ * filterName过滤器名字
+ * urlPatterns拦截的请求，这里是拦截所有的请求
+ */
 @Slf4j
 @WebFilter(filterName = "loginCheckFilter", urlPatterns = "/*")
 public class LoginCheckFilter implements Filter {
@@ -21,7 +26,6 @@ public class LoginCheckFilter implements Filter {
 
     /**
      * 路径匹配，检测是否放行
-     *
      * @param urls
      * @param requestURI
      * @return
@@ -66,14 +70,14 @@ public class LoginCheckFilter implements Filter {
 
 //        3、如果不需要处理，则直接放行
         if(check){
-            log.info("本次请求不需要处理：{}",requestURI);
+//            log.info("本次请求不需要处理：{}",requestURI);
             filterChain.doFilter(request,response);
             return;
         }
 
-//        4.1、判断登录状态，如果已登录，则直接放行
+//        4.1、判断employee登录状态，如果已登录，则直接放行
         if(request.getSession().getAttribute("employee") != null){
-//            log.info("用户已登录：用户ID为：{}",request.getSession().getAttribute("employee"));
+//            log.info("员工已登录：用户ID为：{}",request.getSession().getAttribute("employee"));
 
             Long empId =(Long) request.getSession().getAttribute("employee");
             BaseContext.setCurrentId(empId);
@@ -82,9 +86,9 @@ public class LoginCheckFilter implements Filter {
             return;
         }
 
-        //        4.1、判断user登录状态，如果已登录，则直接放行
+        //        4.2、判断user登录状态，如果已登录，则直接放行
         if(request.getSession().getAttribute("user") != null){
-            log.info("用户已登录：用户ID为：{}",request.getSession().getAttribute("user"));
+//            log.info("用户已登录：用户ID为：{}",request.getSession().getAttribute("user"));
 
             Long userId =(Long) request.getSession().getAttribute("user");
             BaseContext.setCurrentId(userId);
@@ -94,7 +98,7 @@ public class LoginCheckFilter implements Filter {
         }
 
 
-        log.info("用户未登录");
+//        log.info("用户未登录");
 //        5、如果未登录则返回未登录结果
         response.getWriter().write(JSON.toJSONString(R.error("NOTLOGIN")));
         return;

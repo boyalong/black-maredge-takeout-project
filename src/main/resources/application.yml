@@ -6,7 +6,7 @@ spring:
     name: reggie_take_out
   datasource:
     druid:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver- class-name: com.mysql.cj.jdbc.Driver
       url: jdbc:mysql://localhost:3306/reggie?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
       username: root
       password: 123456
@@ -22,9 +22,10 @@ mybatis-plus:
   configuration:
     #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
     map-underscore-to-camel-case: true
+    # 把SQL的查询的过程输出到控制台
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       id-type: ASSIGN_ID
 reggie:
-  path: D:\ideaProject\reggie_take_out\photo\
+  path: D:\ideaProject\reggie_take_out\photo\   #配置上传图片的存储位置

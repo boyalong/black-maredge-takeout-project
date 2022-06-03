@@ -12,8 +12,10 @@ import com.boyalong.reggie.mapper.SetmealMapper;
 import com.boyalong.reggie.service.SetmealDishService;
 import com.boyalong.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,14 +27,18 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
     @Autowired
     private SetmealDishService setmealDishService;
 
+    @Transactional
+    @Override
     public void setWithDish(SetmealDto setmealDto){
         //保存套餐基本信息，操作setmeal
         this.save(setmealDto);
 
+        //保存套餐和菜品的关联信息，操作setmeal_dish ,执行insert操作
         List<SetmealDish> setmealDishes = setmealDto.getSetmealDishes();
+        //注意上面拿到的setmealDishes是没有setmeanlId这个的值的
         setmealDishes.stream().map((item)->{
             item.setSetmealId(setmealDto.getId());
-            return item;
+            return item;//这里返回的就是集合的泛型
         }).collect(Collectors.toList());
 
         //保存套餐菜品信息，操作setmeal_dish
@@ -54,8 +60,10 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
      * 删除套餐及其对应菜品
      * @param ids
      */
+    @Override
+    @Transactional
     public void removeWithDish(List<Long> ids){
-        //查询是否在售
+        //查询套餐的状态，看是否可以删除
         LambdaQueryWrapper<Setmeal> setmealLambdaQueryWrapper = new LambdaQueryWrapper<>();
         setmealLambdaQueryWrapper.in(Setmeal::getId,ids)
                 .eq(Setmeal::getStatus,1);
@@ -73,5 +81,26 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         setmealDishService.remove(setmealDishLambdaQueryWrapper);
     }
 
+
+    /**
+     * 回显套餐数据：根据套餐id查询套餐
+     * @return
+     */
+    @Override
+    public SetmealDto getDate(Long id) {
+        Setmeal setmeal = this.getById(id);
+        SetmealDto setmealDto = new SetmealDto();
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper();
+        //在关联表中查询，setmealdish
+        queryWrapper.eq(id!=null,SetmealDish::getSetmealId,id);
+
+        if (setmeal != null){
+            BeanUtils.copyProperties(setmeal,setmealDto);
+            List<SetmealDish> list = setmealDishService.list(queryWrapper);
+            setmealDto.setSetmealDishes(list);
+            return setmealDto;
+        }
+        return null;
+    }
 
 }

@@ -26,8 +26,10 @@ import java.util.List;
 public class WebMvcConfig extends WebMvcConfigurationSupport {
 
     /**
-     * 设置静态资源映射
+     * 设置资源映射
      * @param registry
+     * 前面表示的是浏览器访问的请求
+     * 后面表示的是要把请求映射到哪里去
      */
     @Override
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -40,6 +42,24 @@ public class WebMvcConfig extends WebMvcConfigurationSupport {
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
 
     }
+
+    /**
+     * 扩展mvc框架的消息转换器
+     * @param converters
+     */
+    @Override
+    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        //log.info("扩展消息转换器...");
+        //创建消息对象
+        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+        //设置对象转换器，底层使用JakeSon将Java对象转为json
+        messageConverter.setObjectMapper(new JacksonObjectMapper());
+        //将上面的消息转换器追加到mvc框架的转换器集合中
+        //转换器是有优先级顺序的，这里我们把自己定义的消息转换器设置为第一优先级，所以会优先使用我们的转换器来进行相关数据进行转换，
+        // 如果我们的转换器没有匹配到相应的数据来转换，那么就会去寻找第二个优先级的转换器，以此类推
+        converters.add(0,messageConverter);
+    }
+
 
     @Bean
     public Docket creatRestApi(){
@@ -60,15 +80,4 @@ public class WebMvcConfig extends WebMvcConfigurationSupport {
                 .build();
     }
 
-
-    @Override
-    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        //创建消息对象
-        MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
-        //设置对象转换器，底层使用JakeSon将Java 对象转为json
-        messageConverter.setObjectMapper(new JacksonObjectMapper());
-        //将上面的消息转换器追加到mvc框架的转换器集合中
-        converters.add(0,messageConverter);
-    }
-    
 }
